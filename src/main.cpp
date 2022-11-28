@@ -38,12 +38,17 @@
 #define RELEASED       1
 
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
-volatile int tick, tim, tim2, flag1, flag2, dialControl, flagd;
+volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
+volatile unsigned char red, green, blue;
 
-int  getLevel(void);
-void setMulticolorLedGreen(void);
-void setMulticolorLedBlue(void);
-void setMulticolorLedRed(void);
+
+int  getPoti(void);
+int  getLDR(void);
+
+void setMulticolorLed(unsigned char r, unsigned char g, unsigned char b);
+
+void setLeds(int x);
+
 
 void setup()
 {
@@ -101,11 +106,6 @@ void loop()
     int x, y, z, akn;
     char text[TXT_LENGTH];
 
-    x = getLevel();
-
-    Wire.beginTransmission(PCF8574);
-    Wire.write(x >> 2); 
-    Wire.endTransmission();
 
     if (flagd == TRUE)
     {
@@ -115,22 +115,27 @@ void loop()
 
     switch (state)
     {
-      case STATE_GREEN: setMulticolorLedGreen();
+        case STATE_GREEN: setMulticolorLed(0, 10, 0);
 
-          if (flag1 == TRUE)
-          {
-             state = STATE_BLUE;
-             setMulticolorLedBlue();
+            x = getPoti();
 
-             flag1 = FALSE;
-             flag2 = FALSE;
-          }
+            setLeds(x);
 
-      break;
 
-      case STATE_BLUE:  
+            if (flag1 == TRUE)
+            {
+                state = STATE_BLUE;
+                setMulticolorLed(0, 0, 128);  // blue
 
-          setMulticolorLedBlue();
+                flag1 = FALSE;
+                flag2 = FALSE;
+            }
+
+        break;
+
+        case STATE_BLUE:  
+
+          setMulticolorLed(0, 0, 128);
 
 
           if (flag1 == TRUE)
@@ -194,12 +199,12 @@ void loop()
                // angleXY = atan2(-y,  x) / M_PI * 180;  if (angleXY < 0) angleXY += 360;
                // angleYZ = atan2(-z, -y) / M_PI * 180;  if (angleYZ < 0) angleYZ += 360;
                // angleZX = atan2( x, -z) / M_PI * 180;  if (angleZX < 0) angleZX += 360;
-          }
+            }
 
 
-      break;
+        break;
 
-      case STATE_RED:  setMulticolorLedRed();
+        case STATE_RED:  // setMulticolorLed(128, 0, 0);
 
           if (tim == 0)
           {
@@ -207,7 +212,11 @@ void loop()
              flag1 = FALSE;
           }
 
-      break;
+          x = getLDR();
+
+          setMulticolorLed(x, 0, 0);
+
+        break;
 
     }
 
@@ -215,31 +224,44 @@ void loop()
 
 ISR (TIMER1_OVF_vect)
 {
+    static unsigned char ramp = 0;
     static int key1 = RELEASED, oldkey1 = RELEASED;
     static int key2 = RELEASED, oldkey2 = RELEASED;
     static int dial = RELEASED, oldDial = RELEASED;
     static int keyd = RELEASED, oldkeyd = RELEASED;
 
-    TCNT1 = 65536 - 16000;   // 1 step takes 62.5 nsec -> 16 = 1 µsec; 16000 = 1 msec
+    TCNT1 = 65536 - 1600;    // 1 step takes 62.5 nsec -> 16 = 1 µsec; 1600 = 0.1 msec
                              // such settings should stay in the first line,
                              // of the interrupt: always!
 
-    dial = ((PINB & D2) == D2) ? RELEASED : PRESSED;
-    if ((dial == PRESSED) && (oldDial == RELEASED))
-    { 
-        if ((PIND & D1) == D1) dialControl++; else dialControl--;
-    } 
-    if ((dial == RELEASED) && (oldDial == PRESSED))    
-    { 
-        if ((PIND & D1) == 0)  dialControl++; else dialControl--;
-    } 
-    oldDial = dial;
+    ramp++;
 
-    if (tim  > 0) tim--;  // to measure time
-    if (tim2 > 0) tim2--; // to measure time
+    if (red   > ramp) PORTB |=  LED_RED;   else PORTB &= ~LED_RED;
+    if (green > ramp) PORTB |=  LED_GREEN; else PORTB &= ~LED_GREEN;
+    if (blue  > ramp) PORTD |=  LED_BLUE;  else PORTD &= ~LED_BLUE;
 
 
-    if (tick >= 10)          // 10 msec
+    if ((tick % 10) == 0)    // all 1msec
+    {
+        dial = ((PINB & D2) == D2) ? RELEASED : PRESSED;
+        if ((dial == PRESSED) && (oldDial == RELEASED))
+        { 
+            if ((PIND & D1) == D1) dialControl++; else dialControl--;
+        } 
+        if ((dial == RELEASED) && (oldDial == PRESSED))    
+        { 
+            if ((PIND & D1) == 0)  dialControl++; else dialControl--;
+        } 
+        oldDial = dial;
+
+        if (tim    > 0) tim--;             // to measure time
+        if (tim2   > 0) tim2--;            // to measure time
+        if (timADC > 0) timADC--;          // to measure time
+    }
+
+
+
+    if (tick >= 100)          // all 10 msec
     {
         tick = 0;
 
@@ -255,12 +277,34 @@ ISR (TIMER1_OVF_vect)
     tick++;
 }
 
-int getLevel(void)
+int getPoti(void)
 {
     int x;
-    return x =  (ADCH << 8) + ADCL;
+    if ((ADMUX & (1 << MUX0)) == (1 << MUX0)) { timADC = 3; while (timADC); } 
+    ADMUX &= ~(1 << MUX0);
+    return x =  ADCH;
 }
 
-void setMulticolorLedGreen(void){PORTB |=  LED_GREEN; PORTD &= ~LED_BLUE; PORTB &= ~LED_RED;}
-void setMulticolorLedBlue (void){PORTB &= ~LED_GREEN; PORTD |=  LED_BLUE; PORTB &= ~LED_RED;}
-void setMulticolorLedRed  (void){PORTB &= ~LED_GREEN; PORTD &= ~LED_BLUE; PORTB |=  LED_RED;}
+int getLDR(void)
+{
+    int x;
+    if ((ADMUX & (1 << MUX0)) == 0)           { timADC = 3; while (timADC); } 
+    ADMUX |= (1 << MUX0);
+    return x =  ADCH;
+}
+
+
+void setMulticolorLed(unsigned char r, unsigned char g, unsigned char b)
+{
+    red = r;
+    green = g;
+    blue = b;
+}
+
+void setLeds(int x)
+{
+    Wire.beginTransmission(PCF8574);
+    Wire.write(~x); 
+    Wire.endTransmission();
+}
+
