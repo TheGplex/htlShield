@@ -22,10 +22,6 @@
 volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
 volatile unsigned char red, green, blue;
 
-#define STATE_GREEN    0
-#define STATE_BLUE     1
-#define STATE_RED      2
-
 #define STATE_0        0 
 #define STATE_1        1
 #define STATE_2        2
@@ -47,8 +43,8 @@ void setup()
 
 void loop()
 {
-    static int state = STATE_GREEN;
-    int x, y, z, akn;
+    static int state = STATE_0;
+    //int x, y, z, akn;
     char text[TXT_LENGTH];
 
     if (flagd == TRUE)    // in allen states soll es möglich sein, zu resitieren
@@ -57,9 +53,51 @@ void loop()
         dialControl = 0; 
     }
 
+    switch (state)
+    {
+        case STATE_0:
+
+            if (flag1 == TRUE)
+            {
+                Serial.println("key 1 pressed!");
+                state = STATE_1;
+                flag1 = FALSE; 
+                flag2 = FALSE;
+                oledClrDisplay();
+                sprintf(text, "mode 1:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(0, 10, 0);
+            }
+        
+        break; 
+
+        case STATE_1:
+
+            if (flag2 == TRUE)
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                flag1 = FALSE; 
+                flag2 = FALSE;
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+
+        break;
+    }
 
 
-    
+}
+
+
+
+
+
+/*
 
     switch (state)
     {
@@ -138,8 +176,6 @@ void loop()
         break;
 
     }
-
-}
-
+ */
 
 
