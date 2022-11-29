@@ -2,3 +2,8 @@
                     analog digital conversion
                                                     қuran nov 2022
 ******************************************************************/
+
+
+
+int  getPoti(void);
+int  getLDR(void);

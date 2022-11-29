@@ -1,8 +1,7 @@
 /******************************************************************
-                        m f c 
+                            l e d s
                                                     қuran nov 2022
 ******************************************************************/
 
-void initMFC(void);
-int getMFC(int * x, int * y, int * z);
-
+void setLeds(int x);
+void setMulticolorLed(unsigned char r, unsigned char g, unsigned char b);
