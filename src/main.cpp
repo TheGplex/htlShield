@@ -7,39 +7,23 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "init.h"
+#include "oled.h"
+#include "mfc.h"
+#include "timer.h"
+#include "adc.h"
 
-#define SCREEN_WIDTH 128     // OLED display width, in pixels
-#define SCREEN_HEIGHT 64     // OLED display height, in pixels
-#define TXT_LENGTH   100
-#define PCF8574     0x20     // i2c address
-#define OLED        0x3c
-#define MFS         0x1e     // magnetic field sensor
-#define LED         0x20     // arduino on board led
-
-#define LED_RED     0x04     // PORTB
-#define LED_GREEN   0x02     // PORTB
-#define D2          0x01     // PORTB Dial Control 2
-
-#define T1          0x80     // PORTD
-#define T2          0x40     // PORTD
-#define LED_BLUE    0x20     // PORTD
-#define D1          0x08     // PORTD Dial Control 1
-#define DT          0x04     // PORTD Dial Control Taster
 
 #define STATE_GREEN    0
 #define STATE_BLUE     1
 #define STATE_RED      2
 
-#define ONE_SEC     1000     // 1000 * 1 msec = 1 second
-#define FIVE_SEC    5000     // 5000 * 1 msec = 5 seconds
-#define TRUE           1
-#define FALSE          0
-#define PRESSED        0
-#define RELEASED       1
+// global variables:
 
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
 volatile unsigned char red, green, blue;
+
 
 
 int  getPoti(void);
@@ -52,28 +36,16 @@ void setLeds(int x);
 
 void setup()
 {
-    DDRB = LED_RED | LED_GREEN | LED;
-    DDRB &= ~D2;
+    initHtlShield();
 
-    DDRD = LED_BLUE;
-    DDRD &= ~T1;
-    DDRD &= ~T2;
-    DDRD &= ~D1;
-    DDRD &= ~DT;
 
-    PORTB = PORTB | D2;                // Pullups!
-    PORTD = PORTD | T1 | T2 | D1 | DT; // Pullups!
-
-    tick = 0;
-
-    ADMUX = (1<<REFS0) | (1<<ADLAR);   // Poti A0
-    ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADATE) | (1 << ADPS2);
 
     cli();
     TCCR1A = 0;              // Normalmode  16 Bit Timerblock
     TCCR1B = 1 << CS10;      // No prescaler
     TIMSK1 = 1 << TOIE1;
     flag1 = flag2 = flagd = FALSE;
+    tick = 0;
     dialControl = 0;
     sei();                   // enable all interrupts
 
