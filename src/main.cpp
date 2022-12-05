@@ -18,7 +18,6 @@
 
 // global variables:
 
-
 volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
 volatile unsigned char red, green, blue;
 
@@ -45,6 +44,7 @@ void loop()
 {
     static int state = STATE_0;
     //int x, y, z, akn;
+    int x; 
     char text[TXT_LENGTH];
 
     if (flagd == TRUE)    // in allen states soll es möglich sein, zu resitieren
@@ -64,7 +64,7 @@ void loop()
                 flag1 = FALSE; 
                 flag2 = FALSE;
                 oledClrDisplay();
-                sprintf(text, "mode 1:");
+                sprintf(text, "Poti:");
                 oledPrintfxy(0, 0, text);
                 oledRefresh();
                 setMulticolorLed(0, 10, 0);
@@ -73,6 +73,41 @@ void loop()
         break; 
 
         case STATE_1:
+
+            x = getPoti();
+            setLeds(x); 
+
+            if (flag2 == TRUE)
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                flag1 = FALSE; 
+                flag2 = FALSE;
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+            if (flag1 == TRUE)
+            {
+                state = STATE_2;
+                flag1 = FALSE; 
+                flag2 = FALSE;
+                oledClrDisplay();
+                sprintf(text, "drehregler");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(0, 0, 30);
+            }
+
+        break;
+ 
+ 
+        case STATE_2:
+
+            x = dialControl;
+            setLeds(x);
 
             if (flag2 == TRUE)
             {
@@ -88,6 +123,7 @@ void loop()
             }
 
         break;
+ 
     }
 
 
