@@ -9,7 +9,8 @@
 #include "init.h"
 #include "leds.h"
 
-extern volatile unsigned char red, green, blue;
+//extern volatile 
+volatile unsigned char red, green, blue;
 
 void setLeds(int x)
 {

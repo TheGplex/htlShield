@@ -19,7 +19,7 @@
 // global variables:
 
 volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
-volatile unsigned char red, green, blue;
+//volatile unsigned char red, green, blue;
 
 #define STATE_0        0 
 #define STATE_1        1
@@ -76,6 +76,11 @@ void loop()
 
             x = getPoti();
             setLeds(x); 
+
+            oledClrDisplay();
+            sprintf(text, "Poti: %03d", x);
+            oledPrintfxy(0, 0, text);
+            oledRefresh();
 
             if (flag2 == TRUE)
             {
