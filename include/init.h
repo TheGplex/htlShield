@@ -26,12 +26,22 @@
 
 #define ONE_SEC     1000     // 1000 * 1 msec = 1 second
 #define FIVE_SEC    5000     // 5000 * 1 msec = 5 seconds
+#define TIMER_0        0
+#define TIMER_1        1
+
+
 #define TRUE           1
 #define FALSE          0
 #define PRESSED        0
 #define RELEASED       1
 
+#define KEY_1       0x01
+#define KEY_2       0x02
+#define DIAL_KEY    0x40
+
+
 
 void initHtlShield(void);
+// initializes the hardware of the shield. should be called during the setup
 
 #endif

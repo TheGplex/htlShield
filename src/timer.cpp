@@ -1,5 +1,5 @@
 /******************************************************************
-                  t i m e r   i n t e r r u p t
+    t i m e r   i n t e r r u p t , k e y s , t i m , p w m 
                                                     қuran nov 2022
 ******************************************************************/
 #include <Arduino.h>
@@ -9,8 +9,85 @@
 #include "init.h"
 #include "timer.h"
 
-extern volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
+volatile int tick, tim0, tim1, timADC, flag1, flag2, dialControl, flagd;
 extern volatile unsigned char red, green, blue;
+
+int keyPressed(int key)
+{
+    int ret = 0; 
+
+    switch (key)
+    {
+        case KEY_1:    ret = (flag1 == TRUE)? TRUE : FALSE; break; 
+        case KEY_2:    ret = (flag2 == TRUE)? TRUE : FALSE; break; 
+        case DIAL_KEY: ret = (flagd == TRUE)? TRUE : FALSE; break; 
+    }
+    return ret;
+}
+void clearKey(int key)
+{
+    switch (key)
+    {
+        case KEY_1:    flag1 = FALSE; break;
+        case KEY_2:    flag2 = FALSE; break;
+        case DIAL_KEY: flagd = FALSE; break;
+    }
+}
+void resetDialControl(void)
+{
+    dialControl = 0; 
+}
+
+int getDialControl(void)
+{
+    return dialControl;
+}
+
+int getDialControlCenter(void)
+{
+    int y, x; 
+
+    y = getDialControl(); 
+
+
+    if (y >   4)      x = 0xff;
+    else if (y ==  4) x = 0x80;
+    else if (y ==  3) x = 0x40;
+    else if (y ==  2) x = 0x20;
+    else if (y ==  1) x = 0x10;
+    else if (y ==  0)  x = 0x08;
+    else if (y == -1) x = 0x04;
+    else if (y == -2) x = 0x02;
+    else if (y == -3) x = 0x01;
+    else              x = 0x0;
+
+    return x;
+
+
+}
+
+void startTimer(int t, int time)
+{
+    switch (t)
+    {
+        case TIMER_0: tim0 = time; break; 
+        case TIMER_1: tim1 = time; break;
+    }
+}
+
+
+int timerexpired(int t)
+{
+    int ret = 0; 
+    switch(t)
+    {
+        case TIMER_0: ret = (tim0 == 0) ? TRUE : FALSE;  break;
+        case TIMER_1: ret = (tim1 == 0) ? TRUE : FALSE;  break;
+    }
+    return ret; 
+}
+
+
 
 
 void initTimer(void)
@@ -57,8 +134,8 @@ ISR (TIMER1_OVF_vect)
         } 
         oldDial = dial;
 
-        if (tim    > 0) tim--;             // to measure time
-        if (tim2   > 0) tim2--;            // to measure time
+        if (tim0   > 0) tim0--;             // to measure time
+        if (tim1   > 0) tim1--;            // to measure time
         if (timADC > 0) timADC--;          // to measure time
     }
 

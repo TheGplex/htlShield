@@ -19,6 +19,27 @@ int getPoti(void)
     return x =  ADCH;
 }
 
+int getPotiLin(void)
+{
+    int x, y;
+
+    y = getPoti(); 
+
+    if (y > 240)      x = 0xff;
+    else if (y > 210) x = 0x7f;
+    else if (y > 180) x = 0x3f;
+    else if (y > 150) x = 0x1f;
+    else if (y > 120) x = 0x0f;
+    else if (y >  90) x = 0x07;
+    else if (y >  60) x = 0x03;
+    else if (y >  30) x = 0x01;
+    else              x = 0x0;
+
+    return x;
+}
+
+
+
 int getLDR(void)
 {
     int x;

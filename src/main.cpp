@@ -15,16 +15,13 @@
 #include "mfc.h"
 #include "timer.h"
 
+#define STATE_0        0    // start
+#define STATE_1        1    // poti
+#define STATE_2        2    // drehregler
+#define STATE_3        3    // blink
+#define STATE_4        4    // adc
+#define STATE_5        5    // mfc
 
-// global variables:
-
-volatile int tick, tim, tim2, timADC, flag1, flag2, dialControl, flagd;
-//volatile unsigned char red, green, blue;
-
-#define STATE_0        0 
-#define STATE_1        1
-#define STATE_2        2
-#define STATE_3        3   
 
 void setup()
 {
@@ -43,26 +40,27 @@ void setup()
 void loop()
 {
     static int state = STATE_0;
-    //int x, y, z, akn;
-    int x; 
+    static int led = FALSE; 
     char text[TXT_LENGTH];
+    int x, y, z;
 
-    if (flagd == TRUE)    // in allen states soll es möglich sein, zu resitieren
+    if (keyPressed(DIAL_KEY))    // für alle states: reset dialControl
     {
-        flagd = FALSE;
-        dialControl = 0; 
+        clearKey(DIAL_KEY); // flagd = FALSE;
+        resetDialControl();      // = 0; 
     }
 
     switch (state)
     {
         case STATE_0:
 
-            if (flag1 == TRUE)
+            if (keyPressed(KEY_1)) 
             {
                 Serial.println("key 1 pressed!");
                 state = STATE_1;
-                flag1 = FALSE; 
-                flag2 = FALSE;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
                 oledClrDisplay();
                 sprintf(text, "Poti:");
                 oledPrintfxy(0, 0, text);
@@ -74,7 +72,7 @@ void loop()
 
         case STATE_1:
 
-            x = getPoti();
+            x = getPotiLin();
             setLeds(x); 
 
             oledClrDisplay();
@@ -82,44 +80,21 @@ void loop()
             oledPrintfxy(0, 0, text);
             oledRefresh();
 
-            if (flag2 == TRUE)
-            {
-                Serial.println("key 2 pressed!");
-                state = STATE_0;
-                flag1 = FALSE; 
-                flag2 = FALSE;
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
-                setMulticolorLed(40, 0, 0);
-            }
-            if (flag1 == TRUE)
+            if (keyPressed(KEY_1))
             {
                 state = STATE_2;
-                flag1 = FALSE; 
-                flag2 = FALSE;
-                oledClrDisplay();
-                sprintf(text, "drehregler");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
                 setMulticolorLed(0, 0, 30);
             }
 
-        break;
- 
- 
-        case STATE_2:
-
-            x = dialControl;
-            setLeds(x);
-
-            if (flag2 == TRUE)
+            if (keyPressed(KEY_2))
             {
                 Serial.println("key 2 pressed!");
                 state = STATE_0;
-                flag1 = FALSE; 
-                flag2 = FALSE;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
                 oledClrDisplay();
                 sprintf(text, "htlShield:");
                 oledPrintfxy(0, 0, text);
@@ -129,94 +104,157 @@ void loop()
 
         break;
  
+ 
+        case STATE_2:   // dial Control
+
+            x = getDialControlCenter();
+            setLeds(x);
+            x = getDialControl();
+
+            oledClrDisplay();
+            sprintf(text, "drehregler");
+            oledPrintfxy(0,  0, text);
+            sprintf(text, "d = %03d", x);
+            oledPrintfxy(0, 20, text);
+            oledRefresh();
+
+            if (keyPressed(KEY_1))
+            {
+                state = STATE_3;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+                startTimer(TIMER_0, ONE_SEC);                
+                startTimer(TIMER_1, FIVE_SEC);                
+                setMulticolorLed(40, 0, 0); 
+            }
+
+
+            if (keyPressed(KEY_2))
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+
+        break;
+
+        case STATE_3:  // blink and jump after 5 sec to STATE_4
+
+            oledClrDisplay();
+            sprintf(text, "blink");
+            oledPrintfxy(0, 0, text);
+            oledRefresh();
+
+            if (timerexpired(TIMER_0))
+            {
+                led = (led == TRUE) ? FALSE : TRUE;
+
+                if (led == TRUE) setMulticolorLed(40, 0, 0); 
+                else setMulticolorLed(0, 0, 0);
+
+                startTimer(TIMER_0, ONE_SEC);
+            }
+
+            if (timerexpired(TIMER_1))
+            {
+                state = STATE_4;
+            }
+            
+            if (keyPressed(KEY_1))
+            {
+                state = STATE_4;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+                setMulticolorLed(0, 30, 0); 
+            }
+
+            if (keyPressed(KEY_2))
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+
+        break; 
+
+        case STATE_4:  // adc
+
+            x = getLDR();
+            oledClrDisplay();
+            sprintf(text, "ldr: %03d", x);
+            oledPrintfxy(0, 0, text);
+            oledRefresh();
+            setMulticolorLed(40, 0, 0);
+
+            if (keyPressed(KEY_1))
+            {
+                state = STATE_5;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+                setMulticolorLed(40, 0, 0); 
+            }
+
+            if (keyPressed(KEY_2))
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+        break; 
+
+        case STATE_5:  // mfc
+
+            getMFC(&x, &y, &z);
+
+            oledClrDisplay();
+            sprintf(text, "x = %03d", x);  oledPrintfxy(0,  0, text);
+            sprintf(text, "y = %03d", y);  oledPrintfxy(0, 20, text);
+            sprintf(text, "z = %03d", y);  oledPrintfxy(0, 40, text);
+            oledRefresh();
+            setMulticolorLed(40, 0, 0);
+
+
+
+            if (keyPressed(KEY_2))
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+        break; 
+
+
     }
 
 
 }
-
-
-
-
-
-/*
-
-    switch (state)
-    {
-        case STATE_GREEN: setMulticolorLed(0, 10, 0);
-
-            x = getPoti();
-
-            setLeds(x);
-
-
-            if (flag1 == TRUE)
-            {
-                state = STATE_BLUE;
-                setMulticolorLed(0, 0, 128);  // blue
-
-                flag1 = FALSE;
-                flag2 = FALSE;
-            }
-
-        break;
-
-        case STATE_BLUE:  
-
-            setMulticolorLed(0, 0, 128);
-
-
-            if (flag1 == TRUE)
-            {
-                state = STATE_RED;
-                tim = FIVE_SEC;
-            }
-
-            if (flag2 == TRUE)
-            {
-                state = STATE_GREEN;
-                flag1 = FALSE;
-            }
-
-            if (tim2 == 0)
-            {
-                tim2 = ONE_SEC;
-
-                akn = getMFC(&x, &y, &z);
-
-
-              sprintf(text, "akn: %d x: %d y %d z: %d", akn, x, y, z);
-              Serial.println(text);
-
-              oledClrDisplay();
-              
-              sprintf(text, "x: %d", x);
-              oledPrintfxy(0, 0, text);
-                            
-              x = dialControl;
-              sprintf(text, "d: %d", x);
-              oledPrintfxy(0, 32, text);
-              oledRefresh(); 
-
-            }
-
-
-        break;
-
-        case STATE_RED:  // setMulticolorLed(128, 0, 0);
-
-          if (tim == 0)
-          {
-             state = STATE_GREEN;
-             flag1 = FALSE;
-          }
-
-          x = getLDR();
-
-          setMulticolorLed(x, 0, 0);
-
-        break;
-
-    }
- */
 
 
