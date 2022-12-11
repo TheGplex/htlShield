@@ -19,13 +19,11 @@ void initMFC(void)
 }
 
 
- // angleXY = atan2(-y,  x) / M_PI * 180;  if (angleXY < 0) angleXY += 360;
- // angleYZ = atan2(-z, -y) / M_PI * 180;  if (angleYZ < 0) angleYZ += 360;
- // angleZX = atan2( x, -z) / M_PI * 180;  if (angleZX < 0) angleZX += 360;
 
 int getMFC(int * x, int * y, int * z)
 {
     int akn;
+    int angleXY, angleYZ, angleZX;
 
     Wire.beginTransmission(MFS);
     Wire.write(0x03);
@@ -38,5 +36,15 @@ int getMFC(int * x, int * y, int * z)
         *z =  Wire.read() << 8; *z |= Wire.read();
         *y =  Wire.read() << 8; *y |= Wire.read();
     }
+
+    angleXY = atan2(-*y,  *x) / M_PI * 180;  if (angleXY < 0) angleXY += 360;
+    angleYZ = atan2(-*z, -*y) / M_PI * 180;  if (angleYZ < 0) angleYZ += 360;
+    angleZX = atan2( *x, -*z) / M_PI * 180;  if (angleZX < 0) angleZX += 360;
+
+    *x = angleXY;
+    *y = angleYZ;
+    *z = angleZX;
+
+
     return akn;
 }

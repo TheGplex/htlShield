@@ -75,6 +75,8 @@ void loop()
             x = getPotiLin();
             setLeds(x); 
 
+            x = getPoti();
+
             oledClrDisplay();
             sprintf(text, "Poti: %03d", x);
             oledPrintfxy(0, 0, text);
@@ -228,9 +230,9 @@ void loop()
             getMFC(&x, &y, &z);
 
             oledClrDisplay();
-            sprintf(text, "x = %03d", x);  oledPrintfxy(0,  0, text);
-            sprintf(text, "y = %03d", y);  oledPrintfxy(0, 20, text);
-            sprintf(text, "z = %03d", y);  oledPrintfxy(0, 40, text);
+            sprintf(text, "xy = %03d", x);  oledPrintfxy(0,  0, text);
+            sprintf(text, "yz = %03d", y);  oledPrintfxy(0, 20, text);
+            sprintf(text, "zx = %03d", z);  oledPrintfxy(0, 40, text);
             oledRefresh();
             setMulticolorLed(40, 0, 0);
 
