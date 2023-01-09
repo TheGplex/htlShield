@@ -20,7 +20,8 @@
 #define STATE_2        2    // drehregler
 #define STATE_3        3    // blink
 #define STATE_4        4    // adc
-#define STATE_5        5    // mfc
+#define STATE_5        5    // mfc^
+#define STATE_6        6    // peakhold
 
 
 void setup()
@@ -36,6 +37,7 @@ void setup()
     Serial.println("start!");
 
 }
+
 
 void loop()
 {
@@ -114,7 +116,7 @@ void loop()
             x = getDialControl();
 
             oledClrDisplay();
-            sprintf(text, "drehregler");
+            sprintf(text, "Drehregler");
             oledPrintfxy(0,  0, text);
             sprintf(text, "d = %03d", x);
             oledPrintfxy(0, 20, text);
@@ -237,6 +239,15 @@ void loop()
             setMulticolorLed(40, 0, 0);
 
 
+            if (keyPressed(KEY_1))
+            {
+                state = STATE_6;
+                getPoti(); 
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+                setMulticolorLed(0, 20, 30);
+            }
+
 
             if (keyPressed(KEY_2))
             {
@@ -252,6 +263,36 @@ void loop()
                 setMulticolorLed(40, 0, 0);
             }
         break; 
+
+        case STATE_6:  // peak hold
+        
+            oledClrDisplay();
+            sprintf(text, "Peak x = %1d", getxPeak()); 
+            oledPrintfxy(0, 0, text);
+            oledRefresh();
+            setMulticolorLed(40, 0, 0);
+            
+            Wire.beginTransmission(PCF8574);
+            Wire.write(~getPeakLeds()); 
+            Wire.endTransmission();
+        
+            if (keyPressed(KEY_2))
+            {
+                Serial.println("key 2 pressed!");
+                state = STATE_0;
+                clearKey(KEY_1); 
+                clearKey(KEY_2); 
+
+                oledClrDisplay();
+                sprintf(text, "htlShield:");
+                oledPrintfxy(0, 0, text);
+                oledRefresh();
+                setMulticolorLed(40, 0, 0);
+            }
+        
+
+
+        break;
 
 
     }

@@ -9,8 +9,19 @@
 #include "init.h"
 #include "timer.h"
 
-volatile int tick, tim0, tim1, timADC, flag1, flag2, dialControl, flagd;
+
+volatile int tick, tim0, tim1, timADC, flag1, flag2, dialControl, flagd, x, led;
 extern volatile unsigned char red, green, blue;
+
+int getPeakLeds(void)
+{
+    return led;
+}
+
+int getxPeak(void)
+{
+    return x; 
+}
 
 int keyPressed(int key)
 {
@@ -109,6 +120,9 @@ ISR (TIMER1_OVF_vect)
     static int key2 = RELEASED, oldkey2 = RELEASED;
     static int dial = RELEASED, oldDial = RELEASED;
     static int keyd = RELEASED, oldkeyd = RELEASED;
+    static int array[8] = {0};
+    static int j;
+    static int oldx = 0, star = 0;
 
     TCNT1 = 65536 - 1600;    // 1 step takes 62.5 nsec -> 16 = 1 µsec; 1600 = 0.1 msec
                              // such settings should stay in the first line,
@@ -153,8 +167,38 @@ ISR (TIMER1_OVF_vect)
         if ((key2 == PRESSED) && (oldkey2 == RELEASED)) { flag2 = TRUE; } oldkey2 = key2;
         if ((keyd == PRESSED) && (oldkeyd == RELEASED)) { flagd = TRUE; } oldkeyd = keyd;
 
+    
+
+        // Peakhold: ebenfalls alle 10 msec
+
+        x = ADCH;
+        x =((x>>4) + 1) >> 1;
+        for (j = 0; j < x; j++ ) array[j] = 1;  // 0 bis 7 ! 
+
+        led = 0;
+
+        for (j = 0; j < 8; j++)
+        {
+            if (array[j] > 0) 
+            {
+                led |= (1 << j);
+                array[j]--;
+            }
+        }
+
+        if (x < oldx)    
+        {
+            array[star] = 100;
+            star = 0;
+        }
+        else if (x > oldx) star = x - 1;
+        
+        oldx = x;
     }
     tick++;
+
+
 }
+
 
 

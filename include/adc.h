@@ -4,7 +4,9 @@
 ******************************************************************/
 
 
-
+/// @brief Ermittelt den Analogwert des Potis 
+/// @param - 
+/// @return Wertebereich 0 bis 255 (Poti)
 int  getPoti(void);
 //   RET: 0 up to 255 = the Poti position
 

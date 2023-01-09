@@ -11,6 +11,8 @@ int getDialControl(void);
 int getDialControlCenter(void);
 void startTimer(int t, int time);
 int timerexpired(int t);
+int getxPeak(void);
+int getPeakLeds(void);
 
 
 void initTimer(void); 

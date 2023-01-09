@@ -40,7 +40,9 @@
 #define DIAL_KEY    0x40
 
 
-
+/// @brief first initialize all intern used values. Even a timer-interrupt
+// will be created here. 
+/// @param void nothing 
 void initHtlShield(void);
 // initializes the hardware of the shield. should be called during the setup
 
