@@ -18,7 +18,7 @@ void initOled(void)
     oled.setTextSize(2);
     oled.setTextColor(WHITE);
     oled.setCursor(0, 0);
-    oled.print("htlShield");
+    oled.print("start!");
     // oled.drawRect(10, 25, 40, 15, WHITE); // links, unten, breit, hoch
     // oled.drawLine(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
     // oled.drawCircle(64, 32, 31, WHITE);
