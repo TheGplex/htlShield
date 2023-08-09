@@ -23,6 +23,8 @@
 #define STATE_5        5    // mfc^
 #define STATE_6        6    // peakhold
 
+char text[TXT_LENGTH];
+
 void showStartMessage(void);
 
 
@@ -45,7 +47,6 @@ void loop()
 {
     static int state = STATE_0;
     static int led = FALSE; 
-    char text[TXT_LENGTH];
     int x, y, z;
 
     if (keyPressed(DIAL_KEY))    // für alle states: reset dialControl
@@ -286,7 +287,6 @@ void loop()
 
 void showStartMessage(void)
 {
-    char text[TXT_LENGTH];
     oledClrDisplay();
     sprintf(text, "press T1");
     oledPrintfxy(0, 0, text);
