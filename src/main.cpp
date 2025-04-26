@@ -25,6 +25,10 @@
 #define STATE_5        5    // mfc^
 #define STATE_6        6    // peakhold
 
+char text[TXT_LENGTH];
+
+void showStartMessage(void);
+
 
 void setup()
 {
@@ -45,7 +49,6 @@ void loop()
 {
     static int state = STATE_0;
     static int led = FALSE; 
-    char text[TXT_LENGTH];
     int x, y, z;
 
     if (keyPressed(DIAL_KEY))    // für alle states: reset dialControl
@@ -101,10 +104,7 @@ void loop()
                 clearKey(KEY_1); 
                 clearKey(KEY_2); 
 
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                showStartMessage();
                 setMulticolorLed(40, 0, 0);
             }
 
@@ -142,10 +142,7 @@ void loop()
                 clearKey(KEY_1); 
                 clearKey(KEY_2); 
 
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                showStartMessage();
                 setMulticolorLed(40, 0, 0);
             }
 
@@ -188,10 +185,7 @@ void loop()
                 clearKey(KEY_1); 
                 clearKey(KEY_2); 
 
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                showStartMessage();
                 setMulticolorLed(40, 0, 0);
             }
 
@@ -221,10 +215,7 @@ void loop()
                 clearKey(KEY_1); 
                 clearKey(KEY_2); 
 
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                showStartMessage();
                 setMulticolorLed(40, 0, 0);
             }
         break; 
@@ -258,10 +249,7 @@ void loop()
                 clearKey(KEY_1); 
                 clearKey(KEY_2); 
 
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                showStartMessage();
                 setMulticolorLed(40, 0, 0);
             }
         break; 
@@ -285,10 +273,7 @@ void loop()
                 clearKey(KEY_1); 
                 clearKey(KEY_2); 
 
-                oledClrDisplay();
-                sprintf(text, "htlShield:");
-                oledPrintfxy(0, 0, text);
-                oledRefresh();
+                showStartMessage();
                 setMulticolorLed(40, 0, 0);
             }
         
@@ -302,4 +287,10 @@ void loop()
 
 }
 
-
+void showStartMessage(void)
+{
+    oledClrDisplay();
+    sprintf(text, "press T1");
+    oledPrintfxy(0, 0, text);
+    oledRefresh();
+}
